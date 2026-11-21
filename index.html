@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tour 3D UNIGRAN Campo Grande — Conheça os Cursos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css?v=8" />
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD Principal do Tour (Estilo Caderno Ilustrado / Aquarela) -->
+    <div id="hud" class="hidden">
+      <!-- Topo Esquerdo: Avatar do Visitante + Pontuação + Botão Personalizar -->
+      <div class="hud-top-left">
+        <div class="hero-card" id="btn-open-creator-hud" title="Clique ou pressione P para personalizar seu personagem">
+          <div class="hero-portrait-wrap">
+            <img id="hud-hero-img" src="img/logo.png" alt="Visitante" />
+          </div>
+          <div class="hero-info">
+            <div class="hero-name-row">
+              <span id="hud-hero-name">Visitante</span>
+              <span class="key-badge">P • EDITAR</span>
+            </div>
+            <div class="tour-progress-row">
+              <span class="tour-score-pill">★ <b id="hud-points">0</b> pts</span>
+              <span class="tour-quiz-pill">Cursos: <b id="hud-quizzes">0 / 15</b></span>
+            </div>
+            <div class="hearts-row" id="hud-hearts" title="Quizzes concluídos no Tour"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topo Centro: Prédio e Andar Atual -->
+      <div class="hud-top-center">
+        <div id="area-banner" class="area-banner">Entrada Principal • UNIGRAN Campo Grande</div>
+      </div>
+
+      <!-- Topo Direito: Pontos, Diplomas, Minimapa e Roteiro -->
+      <div class="hud-top-right">
+        <div class="resources-bar">
+          <div class="resource-chip rupees" title="Pontuação total nos Quizzes e Tour">
+            <span class="rupee-gem">★</span>
+            <span id="hud-rupees">0</span>
+          </div>
+          <div class="resource-chip shards" title="Diplomas coletados no Tour">
+            <span class="triforce-icon">Diplomas</span>
+            <span id="hud-shards">0 / 5</span>
+          </div>
+          <button id="btn-cam-reset" class="icon-btn" title="Centralizar Câmera (V ou clique duplo)">↺</button>
+          <button id="btn-sound" class="icon-btn" title="Alternar Áudio (M)">🔊</button>
+          <button id="btn-help" class="icon-btn" title="Roteiro de Cursos e Quizzes (H)">?</button>
+        </div>
+        <div class="minimap-frame">
+          <canvas id="minimap-canvas" width="166" height="166"></canvas>
+          <div class="minimap-label">MAPA UNIGRAN</div>
+        </div>
+      </div>
+
+      <!-- Prompt contextual de interação -->
+      <div id="interact-prompt" class="interact-prompt hidden">
+        <span class="key-badge">E</span>
+        <span id="interact-text">Conversar</span>
+      </div>
+
+      <!-- Banner de conquista / pontos -->
+      <div id="item-toast" class="item-toast hidden">
+        <div class="item-toast-title" id="item-toast-title">Conquista!</div>
+        <div class="item-toast-desc" id="item-toast-desc">+100 pontos no Tour UNIGRAN!</div>
+      </div>
+
+      <!-- Caixa de diálogo dos Coordenadores e Alunos -->
+      <div id="dialogue-box" class="dialogue-box hidden">
+        <div class="dialogue-speaker" id="dialogue-speaker">Coordenador</div>
+        <div class="dialogue-text" id="dialogue-text"></div>
+        <div class="dialogue-actions-bar">
+          <button id="btn-start-quiz" class="primary-btn small-btn hidden">Fazer Quiz do Curso (+Pontos!)</button>
+          <div class="dialogue-hint">Pressione <span class="key-badge">E</span> ou <span class="key-badge">ESPAÇO</span> para fechar</div>
+        </div>
+      </div>
+
+      <!-- Barra de Controles do Tour -->
+      <div class="controls-footer">
+        <span><b>WASD / Setas</b> Andar</span>
+        <span><b>Shift</b> Correr</span>
+        <span><b>Arrastar / Q-R</b> Câmera 360°</span>
+        <span><b>E</b> Conversar / Quiz</span>
+        <span><b>Espaço</b> Basquete / Futsal</span>
+        <span><b>H</b> Roteiro</span>
+      </div>
+    </div>
+
+    <!-- Tela Inicial — Caderno Pintado à Mão + Customizador 3D (Homem, Mulher ou Cachorro) -->
+    <div id="title-screen" class="overlay-screen handpainted-overlay">
+      <div class="sketchbook-sheet start-creator-card">
+        <!-- Fitas adesivas artesanais nos cantos -->
+        <span class="paper-tape tape-left" aria-hidden="true"></span>
+        <span class="paper-tape tape-right" aria-hidden="true"></span>
+
+        <div class="start-top-brand">
+          <div class="brand-logo-frame">
+            <img src="img/logo.png" alt="Logo UNIGRAN" class="brand-logo-img" />
+          </div>
+          <div class="brand-title-col">
+            <p class="subtitle-eyebrow">Caderno de Visita • UNIGRAN Campo Grande</p>
+            <h1 class="game-title start-title">Tour <span>UNIGRAN</span> 3D</h1>
+            <svg class="ink-underline" viewBox="0 0 260 12" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M3 8 C 65 2, 165 11, 257 5" fill="none" stroke="#d99a26" stroke-width="4.5" stroke-linecap="round"/>
+              <path d="M8 9 C 80 5, 175 11, 250 7" fill="none" stroke="#2c241b" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>
+            </svg>
+          </div>
+        </div>
+
+        <p class="game-tagline start-tagline">
+          Monte seu visitante (<b>Homem</b>, <b>Mulher</b> ou <b>Cachorro</b>), entre pela <b>Rua Abrão Júlio Rahe, 325</b>, explore os
+          <b>Blocos A, B e C</b> de 2 andares da <b>UNIGRAN Capital</b> com todos os <b>15 cursos</b> e responda o <b>Quiz de cada Coordenador</b>!
+        </p>
+
+        <div class="creator-layout">
+          <!-- Moldura de Aquarela com Preview 3D ao Vivo -->
+          <div class="creator-preview-panel">
+            <div class="canvas-watercolor-stage">
+              <canvas id="creator-canvas" width="260" height="295"></canvas>
+            </div>
+            <div class="creator-live-tag" id="creator-live-tag">Visitante • Homem</div>
+            <div class="creator-preview-hint">Arraste o desenho para girar</div>
+            <button type="button" id="btn-creator-random" class="secondary-btn small-btn">
+              <svg class="sketch-ico" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 17 L15 6 L18 9 L7 20 L3 21 Z" fill="#f3c343" stroke="#2c241b" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M14 7 L17 10 M17 4 L20 7" stroke="#2c241b" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Misturar Visual
+            </button>
+          </div>
+
+          <!-- Painel de Customização (Homem / Mulher / Cachorro) -->
+          <div class="creator-controls">
+            <div class="ctrl-row">
+              <label for="cc-name">Nome do Visitante</label>
+              <input type="text" id="cc-name" maxlength="16" value="Visitante" placeholder="Digite seu nome..." />
+            </div>
+
+            <div class="ctrl-row">
+              <label>Personagem</label>
+              <div class="species-tabs" id="species-tabs">
+                <button type="button" class="species-tab active" data-species="man">
+                  <svg class="sketch-ico" viewBox="0 0 28 28" aria-hidden="true">
+                    <circle cx="14" cy="15" r="8" fill="#f2c49b" stroke="#2c241b" stroke-width="2.1"/>
+                    <path d="M6 13 C7 6, 21 6, 22 13 C18 10, 10 10, 6 13 Z" fill="#4a3121" stroke="#2c241b" stroke-width="1.9" stroke-linejoin="round"/>
+                    <circle cx="11.2" cy="15.5" r="1.2" fill="#2c241b"/>
+                    <circle cx="16.8" cy="15.5" r="1.2" fill="#2c241b"/>
+                    <path d="M11.5 19.2 Q14 21.2 16.5 19.2" fill="none" stroke="#2c241b" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                  Homem
+                </button>
+                <button type="button" class="species-tab" data-species="woman">
+                  <svg class="sketch-ico" viewBox="0 0 28 28" aria-hidden="true">
+                    <path d="M5 23 C5 10, 7 5, 14 5 C21 5, 23 10, 23 23" fill="#5c3621" stroke="#2c241b" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="14" cy="15" r="7.4" fill="#f5caa3" stroke="#2c241b" stroke-width="2"/>
+                    <path d="M7 13 C10 8, 18 8, 21 13" fill="#5c3621" stroke="#2c241b" stroke-width="1.8"/>
+                    <circle cx="11.4" cy="15.4" r="1.2" fill="#2c241b"/>
+                    <circle cx="16.6" cy="15.4" r="1.2" fill="#2c241b"/>
+                    <path d="M11.8 18.8 Q14 20.6 16.2 18.8" fill="none" stroke="#b84a5b" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                  Mulher
+                </button>
+                <button type="button" class="species-tab" data-species="dog">
+                  <svg class="sketch-ico" viewBox="0 0 28 28" aria-hidden="true">
+                    <path d="M5 10 L9 6 L10 14 L5 18 Z" fill="#3a2c24" stroke="#2c241b" stroke-width="1.9" stroke-linejoin="round"/>
+                    <path d="M23 10 L19 6 L18 14 L23 18 Z" fill="#3a2c24" stroke="#2c241b" stroke-width="1.9" stroke-linejoin="round"/>
+                    <circle cx="14" cy="15" r="8" fill="#63b3ed" stroke="#2c241b" stroke-width="2.1"/>
+                    <ellipse cx="14" cy="17.8" rx="4.2" ry="3.1" fill="#e2f1ff" stroke="#2c241b" stroke-width="1.6"/>
+                    <ellipse cx="14" cy="16.7" rx="1.9" ry="1.3" fill="#2c241b"/>
+                    <circle cx="11" cy="13.5" r="1.2" fill="#2c241b"/>
+                    <circle cx="17" cy="13.5" r="1.2" fill="#2c241b"/>
+                  </svg>
+                  Cachorro
+                </button>
+              </div>
+            </div>
+
+            <div class="ctrl-grid-2">
+              <div class="ctrl-row">
+                <label for="cc-hair-style">Cabelo / Acessório</label>
+                <select id="cc-hair-style">
+                  <option value="short">Curto Clássico</option>
+                  <option value="long">Longo Solto</option>
+                  <option value="ponytail">Rabo de Cavalo</option>
+                  <option value="curly">Cacheado Volumoso</option>
+                  <option value="spiky">Arrepiado</option>
+                  <option value="cap">Boné UNIGRAN</option>
+                  <option value="grad">Capelo Formatura</option>
+                  <option value="none">Sem Cabelo / Orelhas</option>
+                </select>
+              </div>
+              <div class="ctrl-row">
+                <label for="cc-outfit">Roupa</label>
+                <select id="cc-outfit">
+                  <option value="unigran">Camiseta UNIGRAN</option>
+                  <option value="labcoat">Jaleco de Saúde</option>
+                  <option value="jersey">Camisa Esportiva</option>
+                  <option value="plain">Camiseta Casual</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ctrl-grid-2">
+              <div class="ctrl-row">
+                <label for="cc-beard">Barba (Homem)</label>
+                <select id="cc-beard">
+                  <option value="none">Sem Barba</option>
+                  <option value="full">Barba Cheia</option>
+                </select>
+              </div>
+              <div class="ctrl-row">
+                <label for="cc-glasses">Óculos</label>
+                <select id="cc-glasses">
+                  <option value="none">Sem Óculos</option>
+                  <option value="clear">Óculos de Grau</option>
+                  <option value="shades">Óculos Escuros</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="palette-box">
+              <div class="palette-title">Paleta de Cores (clique para pintar)</div>
+              <div class="ctrl-colors-row">
+                <label class="color-chip" for="cc-skin">
+                  <input type="color" id="cc-skin" value="#dc986a" />
+                  <span>Pele/Pelo</span>
+                </label>
+                <label class="color-chip" for="cc-hair-color">
+                  <input type="color" id="cc-hair-color" value="#24150e" />
+                  <span>Cabelo</span>
+                </label>
+                <label class="color-chip" for="cc-shirt">
+                  <input type="color" id="cc-shirt" value="#004274" />
+                  <span>Camisa</span>
+                </label>
+                <label class="color-chip" for="cc-pants">
+                  <input type="color" id="cc-pants" value="#1e293b" />
+                  <span>Calça</span>
+                </label>
+                <label class="color-chip" for="cc-shoes">
+                  <input type="color" id="cc-shoes" value="#f1f5f9" />
+                  <span>Tênis</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions start-actions">
+          <button type="button" id="btn-creator-cancel" class="secondary-btn hidden">Voltar ao Tour</button>
+          <button type="button" id="btn-start" class="primary-btn">Iniciar Tour pela UNIGRAN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Quiz do Coordenador -->
+    <div id="quiz-modal" class="overlay-screen handpainted-overlay hidden">
+      <div class="sketchbook-sheet modal-card quiz-card">
+        <div class="quiz-header">
+          <div>
+            <div class="quiz-course-tag" id="quiz-course-tag">CURSO UNIGRAN</div>
+            <h2 id="quiz-title">Quiz do Coordenador</h2>
+          </div>
+          <div class="quiz-meta-box">
+            <span id="quiz-progress">Pergunta 1 / 3</span>
+            <span class="quiz-score-badge">★ <b id="quiz-live-score">0</b> pts</span>
+          </div>
+        </div>
+
+        <div id="quiz-question-box">
+          <p class="quiz-question-text" id="quiz-question-text"></p>
+          <div class="quiz-options" id="quiz-options"></div>
+          <div id="quiz-feedback" class="quiz-feedback hidden"></div>
+          <div class="quiz-footer">
+            <button type="button" id="btn-quiz-next" class="primary-btn small-btn hidden">Próxima Pergunta ➜</button>
+          </div>
+        </div>
+
+        <div id="quiz-result-box" class="quiz-result-box hidden">
+          <div class="quiz-result-icon" id="quiz-result-icon">★</div>
+          <h3 id="quiz-result-title">Quiz Concluído!</h3>
+          <p id="quiz-result-summary"></p>
+          <div class="modal-actions">
+            <button type="button" id="btn-quiz-close" class="primary-btn">Continuar o Tour</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Computador do Lab de Engenharia de Software (GameLuta & Jogo de Fase UNIGRAN) -->
+    <div id="arcade-modal" class="overlay-screen handpainted-overlay hidden">
+      <div class="sketchbook-sheet arcade-card">
+        <div class="arcade-topbar">
+          <div>
+            <div class="quiz-course-tag">LAB. ENGENHARIA DE SOFTWARE • 40 COMPUTADORES</div>
+            <h2 id="arcade-title">Computador do Laboratório</h2>
+          </div>
+          <div class="arcade-switch-bar">
+            <button type="button" id="btn-arcade-luta" class="secondary-btn small-btn">Jogo de Luta</button>
+            <button type="button" id="btn-arcade-fase" class="secondary-btn small-btn">Jogo de Fase</button>
+            <a id="btn-arcade-ext" class="secondary-btn small-btn" href="https://emerson-91.github.io/GameLuta/" target="_blank" rel="noopener noreferrer">Abrir Nova Aba ↗</a>
+            <button type="button" id="btn-arcade-close" class="primary-btn small-btn">Sair do PC</button>
+          </div>
+        </div>
+        <div class="arcade-screen-frame">
+          <iframe id="arcade-iframe" title="Jogo do Laboratório de Engenharia de Software" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Roteiro dos 15 Cursos -->
+    <div id="help-modal" class="overlay-screen handpainted-overlay hidden">
+      <div class="sketchbook-sheet modal-card">
+        <h2>Roteiro dos 15 Cursos • UNIGRAN Capital</h2>
+        <ul class="help-list" id="help-course-list"></ul>
+        <button type="button" id="btn-close-help" class="primary-btn">Voltar ao Tour</button>
+      </div>
+    </div>
+
+    <!-- Tela de Conclusão do Tour -->
+    <div id="victory-screen" class="overlay-screen handpainted-overlay hidden">
+      <div class="sketchbook-sheet modal-card victory-card">
+        <div class="victory-crown">★ ★ ★</div>
+        <h2>Tour UNIGRAN Concluído!</h2>
+        <p>Parabéns! Você visitou todos os cursos da UNIGRAN Campo Grande, respondeu todos os Quizzes dos Coordenadores e garantiu sua pontuação!</p>
+        <div class="stats-grid" id="victory-stats"></div>
+        <div class="modal-actions">
+          <button type="button" id="btn-continue-explore" class="secondary-btn">Continuar Passeando</button>
+          <button type="button" id="btn-restart-victory" class="primary-btn">Fazer Novo Tour</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js (CDN principal + fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://unpkg.com/three@0.147.0/build/three.min.js"><\/script>');
+    }
+  </script>
+  <script src="js/audio.js?v=9"></script>
+  <script src="js/world.js?v=9"></script>
+  <script src="js/entities.js?v=9"></script>
+  <script src="js/game.js?v=9"></script>
+</body>
+</html>
